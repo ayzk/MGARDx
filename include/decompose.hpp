@@ -7,7 +7,7 @@
 #include <cstring>
 #include "adaptive.hpp"
 #include "utils.hpp"
-#include "sz_compress_3d.hpp"
+#include "sz_cpp/sz_compress_3d.hpp"
 
 namespace MGARD{
 

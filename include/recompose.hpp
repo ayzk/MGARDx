@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <climits>
 #include "utils.hpp"
-#include "sz_decompress_3d.hpp"
+#include "sz_cpp/sz_decompress_3d.hpp"
 
 namespace MGARD{
 
