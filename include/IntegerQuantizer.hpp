@@ -137,7 +137,6 @@ namespace SZ {
             // std::string serialized(sizeof(uint8_t) + sizeof(T) + sizeof(int),0);
             c[0] = 0b00000010;
             c += 1;
-            // std::cout << "saving eb = " << this->error_bound << ", unpred_num = "  << unpred.size() << std::endl;
             *reinterpret_cast<double *>(c) = this->error_bound;
             c += sizeof(double);
             *reinterpret_cast<int *>(c) = this->radius;
@@ -161,7 +160,6 @@ namespace SZ {
             c += sizeof(size_t);
             this->unpred = std::vector<T>(reinterpret_cast<const T *>(c), reinterpret_cast<const T *>(c) + unpred_size);
             c += unpred_size * sizeof(T);
-            // std::cout << "loading: eb = " << this->error_bound << ", unpred_num = "  << unpred.size() << std::endl;
             // reset index
             index = 0;
         }
