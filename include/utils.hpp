@@ -5,8 +5,8 @@
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
-#include <IntegerQuantizer.hpp>
-#include <HuffmanEncoder.hpp>
+#include "IntegerQuantizer.hpp"
+#include "HuffmanEncoder.hpp"
 #include "zstd.h"
 
 namespace MGARD{
