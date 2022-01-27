@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <climits>
 #include "utils.hpp"
-#include "sz_decompress_3d.hpp"
+#include "sz_cpp/sz_decompress_3d.hpp"
 
 namespace MGARD{
 
@@ -149,8 +149,6 @@ private:
             // use sz directly
             size_t sz_compressed_size = *reinterpret_cast<const size_t*>(compressed_data_pos);
             compressed_data_pos += sizeof(size_t);
-            cout << "sz decompress position = " << compressed_data_pos - compressed << endl;
-            cout << "sz compressed size = " << sz_compressed_size << endl;
             T * sz_dec = sz_decompress_3d<T>(compressed_data_pos, n1_nodal, n2_nodal, n3_nodal);
             for(int i=0; i<n1_nodal * n2_nodal * n3_nodal; i++) data[i] = sz_dec[i];
             free(sz_dec);
@@ -169,7 +167,6 @@ private:
                 // recover sz compressed
                 size_t sz_compressed_size = *reinterpret_cast<const size_t*>(quantizer_pos);
                 quantizer_pos += sizeof(size_t);
-                // cerr << "Recompose dims: " << n1_nodal << " " << n2_nodal << " " << n3_nodal << endl;
                 sz_dec = sz_decompress_3d<T>(quantizer_pos, n1_nodal, n2_nodal, n3_nodal);
                 quantizer_pos += sz_compressed_size;
                 quant_elements = num_elements - n1_nodal * n2_nodal * n3_nodal;
@@ -204,8 +201,6 @@ private:
 
 	void init(const vector<size_t>& dims){
 		size_t buffer_size = default_batch_size * (*max_element(dims.begin(), dims.end())) * sizeof(T);
-		// cerr << "buffer_size = " << buffer_size << endl;
-		// cerr << "data_buffer_size = " << data_buffer_size << endl;
 		if(data_buffer) free(data_buffer);
 		if(correction_buffer) free(correction_buffer);
 		if(load_v_buffer) free(load_v_buffer);
@@ -241,7 +236,6 @@ private:
 	}
     // recompose n/2 data into finer level (n) with hierarchical basis (pure interpolation)
 	void recompose_level_1D(T * data_pos, size_t n, T h, bool nodal_row=true){
-		cerr << n << endl;
 		size_t n_nodal = (n >> 1) + 1;
 		size_t n_coeff = n - n_nodal;
 		memcpy(data_buffer, data_pos, n*sizeof(T));
@@ -256,7 +250,6 @@ private:
 	}
     // recompose n/2 data into finer level (n) with hierarchical basis (pure interpolation)
     void recompose_level_1D_hierarhical_basis(T * data_pos, size_t n, T h, bool nodal_row=true){
-        cerr << n << endl;
         size_t n_nodal = (n >> 1) + 1;
         size_t n_coeff = n - n_nodal;
         memcpy(data_buffer, data_pos, n*sizeof(T));
@@ -350,7 +343,6 @@ private:
 	}	
 	// recompose n1/2 x n2/2 data into finer level (n1 x n2)
 	void recompose_level_2D(T * data_pos, size_t n1, size_t n2, T h, size_t stride){
-		// cerr << "recompose, h = " << h << endl; 
         size_t n1_nodal = (n1 >> 1) + 1;
         size_t n1_coeff = n1 - n1_nodal;
         size_t n2_nodal = (n2 >> 1) + 1;
@@ -368,7 +360,6 @@ private:
 	}
     // recompose n1/2 x n2/2 data into finer level (n1 x n2) with hierarchical basis (pure interpolation)
     void recompose_level_2D_hierarhical_basis(T * data_pos, size_t n1, size_t n2, T h, size_t stride){
-        // cerr << "recompose, h = " << h << endl; 
         size_t n1_nodal = (n1 >> 1) + 1;
         size_t n1_coeff = n1 - n1_nodal;
         size_t n2_nodal = (n2 >> 1) + 1;

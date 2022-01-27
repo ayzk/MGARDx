@@ -344,7 +344,6 @@ vector<vector<unsigned char*>> level_centric_data_refactor(const T * data, int t
     vector<vector<unsigned char*>> level_components;
     vector<size_t> dims_dummy(dims.size(), 0);
     for(int i=0; i<=target_level; i++){
-        // cout << "encoding level " << target_level - i << endl;
         const vector<size_t>& prev_dims = (i == 0) ? dims_dummy : level_dims[i - 1];
         unsigned char * buffer = (unsigned char *) malloc(level_elements[i] * sizeof(T));
         // extract components for each level
@@ -373,14 +372,12 @@ vector<vector<unsigned char*>> level_centric_data_refactor(const T * data, int t
             // identify exponent of max element
             int level_exp = 0;
             frexp(level_error_bounds[i], &level_exp);
-            cout << "level " << i << " max err = " << level_error_bounds[i] << ", exp = " << level_exp << endl;
             if(metadata.max_e_estimator){
                 struct timespec start, end;
                 int err = clock_gettime(CLOCK_REALTIME, &start);
                 auto level_max_e = record_level_max_e(reinterpret_cast<T*>(buffer), level_elements[i], metadata.encoded_bitplanes, level_error_bounds[i]);
                 metadata.max_e.push_back(level_max_e);
                 err = clock_gettime(CLOCK_REALTIME, &end);
-                cout << "A_inf recording time: " << (double)(end.tv_sec - start.tv_sec) + (double)(end.tv_nsec - start.tv_nsec)/(double)1000000000 << "s" << endl;
             }
             if(metadata.mse_estimator){
                 struct timespec start, end;
@@ -388,7 +385,6 @@ vector<vector<unsigned char*>> level_centric_data_refactor(const T * data, int t
                 auto level_mse = record_level_mse(reinterpret_cast<T*>(buffer), level_elements[i], metadata.encoded_bitplanes, level_exp);
                 metadata.mse.push_back(level_mse);
                 err = clock_gettime(CLOCK_REALTIME, &end);
-                cout << "A_2 recording time: " << (double)(end.tv_sec - start.tv_sec) + (double)(end.tv_nsec - start.tv_nsec)/(double)1000000000 << "s" << endl;
             }
             struct timespec start, end;
             int err = clock_gettime(CLOCK_REALTIME, &start);
@@ -427,21 +423,12 @@ vector<vector<unsigned char*>> level_centric_data_refactor(const T * data, int t
                     intra_level_sizes[k] = lossless_length;
                 }
             }
-            cout << endl;
             err = clock_gettime(CLOCK_REALTIME, &end);
-            cout << "Encoding time: " << (double)(end.tv_sec - start.tv_sec) + (double)(end.tv_nsec - start.tv_nsec)/(double)1000000000 << "s" << endl;
             // release extracted component
             free(buffer);
         }
     }
     auto t = metadata.component_sizes;
-    for(int i=0; i<t.size(); i++){
-        for(int j=0; j<t[i].size(); j++){
-            cout << t[i][j] << " ";
-        }
-        cout << endl;
-    }
-    cout << endl;
     return level_components;
 }
 
@@ -472,7 +459,6 @@ T * level_centric_data_reposition(const vector<vector<const unsigned char*>>& le
             reposition_level_coefficients(reinterpret_cast<const T *>(level_components[i][0]), dims, level_dims[i], prev_dims, data);
         }
         else{
-            cout << "decoding level " << level_elements.size() - 1 - i << ", size of components = " << level_components[i].size() << endl;
             // identify exponent of max element
             int level_exp = 0;
             frexp(level_error_bounds[i], &level_exp);
@@ -519,7 +505,6 @@ T * level_centric_data_reposition(const vector<vector<const unsigned char*>>& le
                 free(lossless_decompressed_components[k]);
             }
             err = clock_gettime(CLOCK_REALTIME, &end);
-            cout << "Byteplane decoding time: " << (double)(end.tv_sec - start.tv_sec) + (double)(end.tv_nsec - start.tv_nsec)/(double)1000000000 << "s" << endl;
             reposition_level_coefficients(buffer, dims, level_dims[i], prev_dims, data);
             // string outfile("reconstructed_level_");
             // writefile((outfile + to_string(level_elements.size() - 1 - i) + ".dat").c_str(), reinterpret_cast<const T *>(buffer), level_elements[i]);
@@ -558,12 +543,10 @@ Metadata<T> multigrid_data_refactor(vector<T>& data, const vector<size_t>& dims,
     MGARD::Decomposer<T> decomposer;
     decomposer.decompose(data.data(), dims, target_level);
     err = clock_gettime(CLOCK_REALTIME, &end);
-    cout << "Decomposition time: " << (double)(end.tv_sec - start.tv_sec) + (double)(end.tv_nsec - start.tv_nsec)/(double)1000000000 << "s" << endl;
     err = clock_gettime(CLOCK_REALTIME, &start);
     // bit-plane encoding
     auto components = level_centric_data_refactor(data.data(), target_level, dims, metadata);
     err = clock_gettime(CLOCK_REALTIME, &end);
-    cout << "Refactor time: " << (double)(end.tv_sec - start.tv_sec) + (double)(end.tv_nsec - start.tv_nsec)/(double)1000000000 << "s" << endl;
     // data reorganization
     err = clock_gettime(CLOCK_REALTIME, &start);
     size_t total_size = 0;
@@ -585,7 +568,6 @@ Metadata<T> multigrid_data_refactor(vector<T>& data, const vector<size_t>& dims,
     }
     metadata.total_encoded_size = total_size;
     err = clock_gettime(CLOCK_REALTIME, &end);
-    cout << "Reorganization time: " << (double)(end.tv_sec - start.tv_sec) + (double)(end.tv_nsec - start.tv_nsec)/(double)1000000000 << "s" << endl;
     // write metadata
     for(int i=0; i<components.size(); i++){
         for(int j=0; j<components[i].size(); j++){
@@ -603,7 +585,6 @@ T * multigrid_data_recompose(const string& filename, const Metadata<T>& metadata
     const vector<vector<double>>& level_errors = metadata.get_level_errors();
     const vector<vector<size_t>>& level_sizes = metadata.component_sizes;
     const vector<int>& order = metadata.order;
-    cout << "init level components\n";
     vector<int> num_intra_level_components(target_level + 1, 0);
     size_t retrieved_size = REFACTOR::interpret_reading_size(dims.size(), level_sizes, level_errors, order, metadata.mode, tolerance, num_intra_level_components);
     for(int i=0; i<=target_level; i++){
@@ -612,7 +593,6 @@ T * multigrid_data_recompose(const string& filename, const Metadata<T>& metadata
             num_intra_level_components[i] ++;
         }
     }
-    cout << "retrieved_size = " << retrieved_size << endl;
     // read refactored data
     unsigned char * refactored_data = (unsigned char *) malloc(retrieved_size);
     IO::posix_read(filename, refactored_data, retrieved_size);
@@ -624,26 +604,22 @@ T * multigrid_data_recompose(const string& filename, const Metadata<T>& metadata
             break;
         }
     }
-    cout << "Recompose to level " << recomposed_level << endl;;
     recompose_times = target_level - recomposed_level;
     struct timespec start, end;
     int err = 0;
     err = clock_gettime(CLOCK_REALTIME, &start);
     T * data = level_centric_data_reposition<T>(components, metadata, target_level, recompose_times, num_intra_level_components, recompose_dims);
     err = clock_gettime(CLOCK_REALTIME, &end);
-    cout << "Reposition time: " << (double)(end.tv_sec - start.tv_sec) + (double)(end.tv_nsec - start.tv_nsec)/(double)1000000000 << "s" << endl;
     // refactored_data can only be freed after reposition because components used pointers
     free(refactored_data);
     err = clock_gettime(CLOCK_REALTIME, &start);
     MGARD::Recomposer<T> recomposer;
     recomposer.recompose(data, recompose_dims, recompose_times);
     err = clock_gettime(CLOCK_REALTIME, &end);
-    cout << "Recomposition time: " << (double)(end.tv_sec - start.tv_sec) + (double)(end.tv_nsec - start.tv_nsec)/(double)1000000000 << "s" << endl;
     size_t num_elements = 1;
     for(const auto& d:dims){
         num_elements *= d;
     }
-    cout << "Compression ratio = " << num_elements * sizeof(T) * 1.0 / retrieved_size << endl;
     return data;
 }
 

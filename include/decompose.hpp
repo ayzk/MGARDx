@@ -7,7 +7,7 @@
 #include <cstring>
 #include "adaptive.hpp"
 #include "utils.hpp"
-#include "sz_compress_3d.hpp"
+#include "sz_cpp/sz_compress_3d.hpp"
 
 namespace MGARD{
 
@@ -45,7 +45,6 @@ public:
 		data_buffer_size = num_elements * sizeof(T);
         int max_level = log2(*min_element(dims.begin(), dims.end())) - 1;
         if(target_level > max_level) target_level = max_level;
-        cerr << "Decompose level = " << target_level << endl;
 		init(dims);
         current_dims.resize(dims.size());
 		if(dims.size() == 1){
@@ -79,7 +78,6 @@ public:
                 double cc = (1 - c) / (1 - pow(c, i + 1));
                 double level_eb = cc * error_bound / C2 ;
                 if(switch_to_lorenzo(data, n1, n2, n3, dims[1] * dims[2], dims[2], level_eb)){
-                    cout << "switch to SZ (lorenzo) at level " << i << endl;
                     return i;
                 }
 				decompose_level_3D(data, n1, n2, n3, (T)h, dims[1] * dims[2], dims[2]);
@@ -91,7 +89,6 @@ public:
                 current_dims[0] = n1;
                 current_dims[1] = n2;
                 current_dims[2] = n3;
-                // cerr << current_dims[0] << " " << current_dims[1] << " " << current_dims[2] << " " << endl;
 			}
 		}
         return target_level;
@@ -145,8 +142,6 @@ private:
             // record sz compressed data
             *reinterpret_cast<size_t*>(compressed_data_pos) = sz_compressed_size;
             compressed_data_pos += sizeof(size_t);
-            cout << "sz compress position = " << compressed_data_pos - compressed << endl;
-            cout << "sz compressed size = " << sz_compressed_size << endl;
             memcpy(compressed_data_pos, sz_compressed, sz_compressed_size);
             compressed_data_pos += sz_compressed_size;
             free(sz_compressed);            
@@ -235,7 +230,6 @@ private:
 
 	void init(const vector<size_t>& dims){
 		size_t buffer_size = default_batch_size * (*max_element(dims.begin(), dims.end())) * sizeof(T);
-		// cerr << "buffer_size = " << buffer_size << endl;
 		if(data_buffer) free(data_buffer);
 		if(correction_buffer) free(correction_buffer);
 		if(load_v_buffer) free(load_v_buffer);
@@ -372,7 +366,6 @@ private:
 	}	
 	// decompose n1 x n2 data into coarse level (n1/2 x n2/2)
 	void decompose_level_2D(T * data_pos, size_t n1, size_t n2, T h, size_t stride){
-		// cerr << "decompose, h = " << h << endl; 
         size_t n1_nodal = (n1 >> 1) + 1;
         size_t n1_coeff = n1 - n1_nodal;
         size_t n2_nodal = (n2 >> 1) + 1;

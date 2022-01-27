@@ -346,9 +346,6 @@ template <class T>
 T * byte_wise_direct_decoding(const vector<const unsigned char*>& level_components, int n, int level_exp, int num_level_component){
     T * level_data = (T *) malloc(n * sizeof(T));
     size_t level_component_size = (n * sizeof(T) - 1) / num_level_component + 1 + 8;
-    cout << "level element = " << n << endl;
-    cout << "num_level_component = " << num_level_component << endl;
-    cout << "level_component_size = " << level_component_size << endl;
     size_t buffer_index = 0;
     T * data_pos = level_data;
     for(int i=0; i<n/8; i++){
@@ -535,9 +532,6 @@ void byte_wise_direct_encoding_unrolled_with_sign_postpone(const T * data, int n
 // T * byte_wise_direct_decoding_with_sign_postpone(const vector<const unsigned char*>& level_components, int n, int level_exp, int num_level_component){
 //     T * level_data = (T *) malloc(n * sizeof(T));
 //     size_t level_component_size = (n * sizeof(T) - 1) / num_level_component + 1 + 8;
-//     cout << "level element = " << n << endl;
-//     cout << "num_level_component = " << num_level_component << endl;
-//     cout << "level_component_size = " << level_component_size << endl;
 //     size_t buffer_index = 0;
 //     T * data_pos = level_data;
 //     for(int i=0; i<n/8; i++){
@@ -605,8 +599,6 @@ void byte_wise_direct_encoding_unrolled_with_sign_postpone(const T * data, int n
 template <class T>
 T * direct_hybrid_decoding(const vector<const unsigned char*>& level_components, size_t n, int level_exp, int num_level_component, const vector<unsigned char>& bitplane_indicator){
     T * level_data = (T *) malloc(n * sizeof(T));
-    cout << "level element = " << n << endl;
-    cout << "num_level_component = " << num_level_component << endl;
     vector<DecoderInterface*> decoders;
     for(int i=0; i<num_level_component; i++){
         switch(bitplane_indicator[i]){

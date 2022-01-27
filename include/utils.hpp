@@ -5,8 +5,8 @@
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
-#include <IntegerQuantizer.hpp>
-#include <HuffmanEncoder.hpp>
+#include "IntegerQuantizer.hpp"
+#include "HuffmanEncoder.hpp"
 #include "zstd.h"
 
 namespace MGARD{
@@ -89,7 +89,6 @@ void writefile(const char *file, Type *data, size_t num_elements) {
 }
 template <class T>
 void print(T * data, size_t n1, size_t n2, string s){
-    cout << "Print data: " << s << endl;
     for(int i=0; i<n1; i++){
         for(int j=0; j<n2; j++){
             cout << data[i * n2 + j] << " ";

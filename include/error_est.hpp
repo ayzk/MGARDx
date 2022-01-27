@@ -154,7 +154,6 @@ struct CompareEfficiency {
 @params total_size: total size of reorganized data
 */
 unsigned char * refactored_data_reorganization_in_order(const vector<vector<unsigned char*>>& level_components, const vector<vector<size_t>>& level_sizes, vector<int>& order, size_t& total_size){
-    cout << "Reorganize refactored data by level ordering." << endl;
     const int num_levels = level_sizes.size();
     total_size = 0;
     for(int i=0; i<num_levels; i++){
@@ -171,11 +170,8 @@ unsigned char * refactored_data_reorganization_in_order(const vector<vector<unsi
             reorganized_data_pos += level_sizes[i][j];
         }
     }
-    cout << "recorded data size = " << reorganized_data_pos - reorganized_data << endl;
     for(int i=0; i<order.size(); i++){
-        cout << num_levels - 1 - order[i];
     }
-    cout << endl;
     return reorganized_data;
 }
 
@@ -187,7 +183,6 @@ unsigned char * refactored_data_reorganization_in_order(const vector<vector<unsi
 @params total_size: total size of reorganized data
 */
 unsigned char * refactored_data_reorganization_round_robin(const vector<vector<unsigned char*>>& level_components, const vector<vector<size_t>>& level_sizes, vector<int>& order, size_t& total_size){
-    cout << "Reorganize refactored data by round-robin." << endl;
     const int num_levels = level_sizes.size();
     total_size = 0;
     for(int i=0; i<num_levels; i++){
@@ -221,11 +216,6 @@ unsigned char * refactored_data_reorganization_round_robin(const vector<vector<u
             }
         }
     }
-    cout << "recorded data size = " << reorganized_data_pos - reorganized_data << endl;
-    for(int i=0; i<order.size(); i++){
-        cout << num_levels - 1 - order[i];
-    }
-    cout << endl;
     return reorganized_data;
 }
 
@@ -261,23 +251,19 @@ vector<vector<T>> amortize_error(const vector<vector<T>>& error, int steps){
 @params total_size: total size of reorganized data
 */
 unsigned char * refactored_data_reorganization_uniform_error(int N, int mode, const vector<vector<unsigned char*>>& level_components, const vector<vector<size_t>>& level_sizes, const vector<vector<double>>& level_errors, vector<int>& order, size_t& total_size){
-    cout << "Reorganize refactored data by uniform quantization." << endl;
     const int num_levels = level_sizes.size();
     total_size = 0;
     vector<double> factor(num_levels, 1);
     if(mode == SQUARED_ERROR){
         for(int i=0; i<num_levels; i++){
             factor[i] = sqrt(1u << (N * (num_levels - 1 - i)));
-            cout << factor[i] << " " << endl;
         }
     }
-    cout << "compute total_size" << endl;
     for(int i=0; i<num_levels; i++){
         for(int j=0; j<level_sizes[i].size(); j++){
             total_size += level_sizes[i][j];
         }
     }
-    cout << "total_size = " << total_size << endl;
     unsigned char * reorganized_data = (unsigned char *) malloc(total_size);
     unsigned char * reorganized_data_pos = reorganized_data;
     vector<size_t> index(num_levels, 0);
@@ -308,11 +294,8 @@ unsigned char * refactored_data_reorganization_uniform_error(int N, int mode, co
         }
         error_level /= 2;
     }
-    cout << "recorded data size = " << reorganized_data_pos - reorganized_data << endl;
     for(int i=0; i<order.size(); i++){
-        cout << num_levels - 1 - order[i];
     }
-    cout << endl;
     return reorganized_data;
 }
 
@@ -327,7 +310,6 @@ unsigned char * refactored_data_reorganization_uniform_error(int N, int mode, co
 @params total_size: total size of reorganized data
 */
 unsigned char * refactored_data_reorganization_greedy_shuffling(int N, int mode, const vector<vector<unsigned char*>>& level_components, const vector<vector<size_t>>& level_sizes, const vector<vector<double>>& level_errors, vector<int>& order, size_t& total_size){
-    cout << "Reorganize refactored data by greedy shuffling." << endl;
     const int num_levels = level_sizes.size();
     total_size = 0;
     // init error_gain: reduced error by including current bitplane
@@ -382,7 +364,6 @@ unsigned char * refactored_data_reorganization_greedy_shuffling(int N, int mode,
         efficiency_heap.pop();
         auto level = eff.level;
         auto bitplane_index = index[level];
-        // cout << "Encode level " << level << " component " << bitplane_index << ", efficiency = " << eff.efficiency << endl;
         order.push_back(level);
         if(bitplane_index == 0){
             memcpy(reorganized_data_pos, level_components[level][0], level_sizes[level][0]);
@@ -399,11 +380,6 @@ unsigned char * refactored_data_reorganization_greedy_shuffling(int N, int mode,
             efficiency_heap.push(Efficiency(efficiency[level][index[level]], level));
         }
     }
-    cout << "recorded data size = " << reorganized_data_pos - reorganized_data << endl;
-    for(int i=0; i<order.size(); i++){
-        cout << num_levels - 1 - order[i];
-    }
-    cout << endl;
     // exit(0);
     return reorganized_data;
 }
@@ -438,12 +414,6 @@ size_t interpret_reading_size(size_t N, const vector<vector<size_t>>& level_size
     for(int i=0; i<num_levels; i++){
         err += estimate_error(level_errors[i][0], num_levels - 1 - i, N, mode);
     }
-    // for(int i=0; i<level_errors.size(); i++){
-    //     for(int j=0; j<level_errors[i].size(); j++){
-    //         cout << j << ":" << level_errors[i][j] << " ";
-    //     }
-    //     cout << endl;
-    // }
     while((err > tolerance) && (count < order.size())){
         int level = order[count ++];
         int bitplane_index = index[level];
@@ -456,8 +426,6 @@ size_t interpret_reading_size(size_t N, const vector<vector<size_t>>& level_size
         err += estimate_error(level_errors[level][bitplane_index + 1], num_levels - 1 - level, N, mode) - estimate_error(level_errors[level][bitplane_index], num_levels - 1 - level, N, mode); 
         index[level] ++;
     }
-    cout << "Target error = " << tolerance << endl;
-    cout << "Estimated error = " << err << endl;
     return retrieved_size;
 }
 // read the refactored into vector of level bitplanes
@@ -490,7 +458,6 @@ vector<vector<const unsigned char*>> read_reorganized_data(const unsigned char *
         }
         index[level] ++;
     }
-    cout << "read data size = " << refactored_data_pos - refactored_data << endl; 
     return level_components;
 }
 
